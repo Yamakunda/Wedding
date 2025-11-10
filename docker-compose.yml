@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  frontend:
+    # 1. Build the image using the Dockerfile in the current directory
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # 2. Assign a custom name to the container for easy identification
+    container_name: nextjs_static_frontend
+    
+    # 3. Map the container's port 80 (Nginx default) to the host's port 3000
+    # Cú pháp: "HOST_PORT:CONTAINER_PORT"
+    ports:
+      - "3000:80"  # ĐÃ SỬA: Thay 3000:3000 thành 3000:80
+      
+    # 4. Restart the container if it stops, unless manually stopped
+    restart: unless-stopped
+    
+    # Optional: Nếu bạn có env variables mà Nginx/app cần
+    # environment:
+    #   - CUSTOM_ENV_VAR=value
