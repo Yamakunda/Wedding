@@ -32,9 +32,7 @@ update_manifest:
     - git config --global user.email "ci-bot@example.com"
     - git config --global user.name "CI Bot"
   script:
-    # Sửa file deployment.yaml với tag mới (dùng sed)
-    - sed -i "s|image: ${REGISTRY}/${IMAGE_NAME}:.*|image: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}|g" k8s/deployment.yaml
-    
+    - 'sed -i "s|image: ${REGISTRY}/${IMAGE_NAME}:.*|image: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}|g" k8s/deployment.yaml'    
     # Commit và Push ngược lại repo
     - git add k8s/deployment.yaml
     - git commit -m "Update image tag to ${IMAGE_TAG} [skip ci]" || true # [skip ci] để tránh lặp vô tận
