@@ -5,7 +5,7 @@ stages:
 variables:
   REGISTRY: "192.168.95.101:5000"
   # SỬA DÒNG NÀY: Phải là [Namespace]/[Project-Name]
-  IMAGE_NAME: "root/wedding-fe"
+  IMAGE_NAME: "root/wedding"
   IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
   REGISTRY_USER: "root"
   REGISTRY_PASSWORD: "glpat-fnkG9siRafwhtxecizzH"
