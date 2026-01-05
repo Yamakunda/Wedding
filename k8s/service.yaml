@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: wedding-fe
+  name: wedding
   labels:
-    app: wedding-fe
+    app: wedding
 spec:
   type: LoadBalancer
   selector:
-    app: wedding-fe
+    app: wedding
   ports:
   - protocol: TCP
     port: 80

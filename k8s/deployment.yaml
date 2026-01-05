@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wedding-fe
+  name: wedding
   labels:
-    app: wedding-fe
+    app: wedding
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: wedding-fe
+      app: wedding
   template:
     metadata:
       labels:
-        app: wedding-fe
+        app: wedding
     spec:
       containers:
-      - name: wedding-fe
-        image: 192.168.95.101:5000/root/wedding-fe:latest
+      - name: wedding
+        image: 192.168.95.101:5000/root/wedding:latest
         ports:
         - containerPort: 80
         resources:
