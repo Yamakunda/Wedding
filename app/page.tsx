@@ -81,7 +81,7 @@ export default function Home() {
         </div>
         <div className='flex flex-row items-center justify-center my-4 parisienne'>
           <div className='border border-[#000] w-24 sm:w-36 mr-2 sm:mr-5'></div>
-          <div className='text-[#000000] text-3xl'>Just Married</div>
+          <div className='text-[#000000] text-3xl'>Just Married Test 1</div>
           <div className='border border-[#000] w-24 sm:w-36 ml-2 sm:ml-5'></div>
         </div>
       </div>

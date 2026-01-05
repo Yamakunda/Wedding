@@ -4,39 +4,73 @@ stages:
 
 variables:
   REGISTRY: "192.168.95.101:5000"
-  # SỬA DÒNG NÀY: Phải là [Namespace]/[Project-Name]
   IMAGE_NAME: "root/wedding"
-  IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
   REGISTRY_USER: "root"
   REGISTRY_PASSWORD: "glpat-fnkG9siRafwhtxecizzH"
+  GIT_ACCESS_TOKEN: "glpat-fnkG9siRafwhtxecizzH" # Nên dùng Project Access Token hoặc Group Access Token
+  RELEASE_TYPE: "rc" # suffix cho version (ví dụ: v1.0.1-rc)
 
 build_and_push:
   stage: build_and_push
   image: docker:latest
+  before_script:
+    # Cài đặt git để kiểm tra tag
+    - apk add --no-cache git
+    - git fetch --tags
+    - IS_TAG_EXIST=$(git tag)
+    - |
+      if [ -z "$IS_TAG_EXIST" ]; then
+        echo "Tag not exist, starting from v1.0.0"
+        NEW_LATEST_TAG="v1.0.0-${RELEASE_TYPE}"
+      else
+        # Lấy tag mới nhất, tăng số patch (số cuối) lên 1
+        LATEST_TAG=$(git tag -l --sort=-v:refname | head -1)
+        echo "Current latest tag: $LATEST_TAG"
+        NEW_LATEST_TAG=$(echo $LATEST_TAG | awk -F '[-.]' '{print $1"."$2"."$3+1"-'${RELEASE_TYPE}'"}')
+      fi
+    - echo "NEW_LATEST_TAG=$NEW_LATEST_TAG"
+    - echo "MY_TAG=$NEW_LATEST_TAG" > tag.env
   script:
+    # 1. Login Registry
     - echo "$REGISTRY_PASSWORD" | docker login ${REGISTRY} -u ${REGISTRY_USER} --password-stdin
-    - docker build -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
-    - docker tag ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
-    - docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+    
+    # 2. Build và Push Image với Tag mới
+    - docker build -t ${REGISTRY}/${IMAGE_NAME}:${NEW_LATEST_TAG} .
+    - docker tag ${REGISTRY}/${IMAGE_NAME}:${NEW_LATEST_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
+    - docker push ${REGISTRY}/${IMAGE_NAME}:${NEW_LATEST_TAG}
     - docker push ${REGISTRY}/${IMAGE_NAME}:latest
+    
+    # 3. Tạo Git Tag mới và push ngược lại Repository
+    - git config --global user.email "ci-bot@example.com"
+    - git config --global user.name "CI Bot"
+    - git tag $NEW_LATEST_TAG
+    # Sử dụng format http://oauth2:TOKEN@URL để push tag
+    - git push http://oauth2:${GIT_ACCESS_TOKEN}@192.168.95.101/root/wedding.git --tags
+  artifacts:
+    reports:
+      dotenv: tag.env
   only:
     - main
-    - develop
 
 update_manifest:
   stage: update_manifest
   image: alpine:latest
+  needs:
+    - job: build_and_push
+      artifacts: true
   before_script:
     - apk add --no-cache git
-    # Cấu hình Git để có thể commit
     - git config --global user.email "ci-bot@example.com"
     - git config --global user.name "CI Bot"
   script:
-    - 'sed -i "s|image: ${REGISTRY}/${IMAGE_NAME}:.*|image: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}|g" k8s/deployment.yaml'    
-    # Commit và Push ngược lại repo
+    # 1. Sử dụng lệnh sed nâng cao để tìm đúng dòng 'image:' và thay thế
+    # \1 giữ lại khoảng trắng (indentation) cũ của file YAML
+    - |
+      sed -i "s|^\([[:space:]]*image:\).*|\1 ${REGISTRY}/${IMAGE_NAME}:${MY_TAG}|g" k8s/deployment.yaml
+    
+    # 2. Commit và Push thay đổi manifest
     - git add k8s/deployment.yaml
-    - git commit -m "Update image tag to ${IMAGE_TAG} [skip ci]" || true # [skip ci] để tránh lặp vô tận
-    # Bạn cần một Project Access Token có quyền write_repository để push
-    - git push http://oauth2:${GITLAB_ACCESS_TOKEN}@192.168.95.101/root/wedding.git HEAD:main || true
+    - git commit -m "Update image tag to ${MY_TAG} [skip ci]" || true
+    - git push http://oauth2:${GIT_ACCESS_TOKEN}@192.168.95.101/root/wedding.git HEAD:main
   only:
     - main
