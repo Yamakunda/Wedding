@@ -6,8 +6,8 @@ variables:
   REGISTRY: "192.168.95.101:5000"
   IMAGE_NAME: "root/wedding"
   REGISTRY_USER: "root"
-  REGISTRY_PASSWORD: "glpat-fnkG9siRafwhtxecizzH"
-  GIT_ACCESS_TOKEN: "glpat-fnkG9siRafwhtxecizzH" # Nên dùng Project Access Token hoặc Group Access Token
+  REGISTRY_PASSWORD: """
+  GIT_ACCESS_TOKEN: "" # Nên dùng Project Access Token hoặc Group Access Token
   RELEASE_TYPE: "rc" # suffix cho version (ví dụ: v1.0.1-rc)
 
 build_and_push:
