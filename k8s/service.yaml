@@ -5,7 +5,7 @@ metadata:
   labels:
     app: wedding
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: wedding
   ports:
